@@ -49,18 +49,17 @@ export abstract class BaseAndroidSdk implements AndroidSDK {
             sdkUrl = this.defaultSdkUrl
         }
 
-        if (fs.existsSync(`${process.env.HOME}/.android`)) {
-            await execWithResult(`mv ${process.env.HOME}/.android ${process.env.HOME}/.android.backup`)
+        if (!fs.existsSync(`${process.env.HOME}/.android`)) {
+            await execWithResult(`curl -L ${sdkUrl} -o ${ANDROID_TMP_PATH} -s`)
+            await execWithResult(`unzip -q ${ANDROID_TMP_PATH} -d ${ANDROID_HOME}`)
+            await execWithResult(`mv ${ANDROID_HOME}/cmdline-tools ${ANDROID_HOME}/cmdline-tools-tmp`)
+            await execWithResult(`mkdir -p ${ANDROID_HOME}/cmdline-tools`)
+            await execWithResult(`mv ${ANDROID_HOME}/cmdline-tools-tmp ${ANDROID_HOME}/cmdline-tools/bootstrap-version`)
+
+            await execWithResult(`rm ${ANDROID_TMP_PATH}`)
+            await execWithResult(`mkdir -p ${ANDROID_HOME}/sdk_home`)
         }
 
-        await execWithResult(`curl -L ${sdkUrl} -o ${ANDROID_TMP_PATH} -s`)
-        await execWithResult(`unzip -q ${ANDROID_TMP_PATH} -d ${ANDROID_HOME}`)
-        await execWithResult(`mv ${ANDROID_HOME}/cmdline-tools ${ANDROID_HOME}/cmdline-tools-tmp`)
-        await execWithResult(`mkdir -p ${ANDROID_HOME}/cmdline-tools`)
-        await execWithResult(`mv ${ANDROID_HOME}/cmdline-tools-tmp ${ANDROID_HOME}/cmdline-tools/bootstrap-version`)
-
-        await execWithResult(`rm ${ANDROID_TMP_PATH}`)
-        await execWithResult(`mkdir -p ${ANDROID_HOME}/sdk_home`)
 
         core.exportVariable('ANDROID_HOME', `${ANDROID_HOME}`);
         core.exportVariable('ANDROID_SDK_ROOT', `${ANDROID_HOME}`);
